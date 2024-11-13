@@ -123,7 +123,7 @@ function App() {
                 flexDirection: "column",
               }}
             >
-              <p style={{ marginBlock: "auto !important" }}>{!!valor ? "Proceso" : ""}</p>
+              <p style={{ marginBlock: "0 !important" }}>{!!valor ? "Proceso" : ""}</p>
               <span>{valor}</span>
             </div>
           ))}
