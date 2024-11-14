@@ -7,11 +7,13 @@ import flechaABajo from "./assets/flecha-hacia-abajo.png";
 import flechaArriba from "./assets/flecha-hacia-arriba.png";
 import iconoReiniciar from "./assets/recargar.png";
 import ColaCircular from "./classes/ColaCircular";
+import Proceso from "./classes/Proceso";
 
 const TAMANO_COLA = 8;
+const QUANTUM = 25;
 function App() {
-  const [cola, setCola] = useState(new ColaCircular(TAMANO_COLA));
-  const [contenido, setContenido] = useState<string[]>([]);
+  const [cola, setCola] = useState(new ColaCircular(TAMANO_COLA, QUANTUM));
+  const [contenido, setContenido] = useState<(Proceso | null)[]>([]);
   const [indiceInicio, setIndiceInicio] = useState(0);
   const [indiceFinal, setIndiceFinal] = useState(0);
   const [actualizadoEn, setActualizadoEn] = useState(new Date().getTime());
@@ -19,31 +21,36 @@ function App() {
   const contenedorRef = useRef<HTMLDivElement>(null);
   const [anchoContenedor, setAnchoContenedor] = useState(0);
   const [anchoElemento, setAnchoElemento] = useState(0);
+  const [tiempoProceso, setTiempoProceso] = useState(1);
 
   const actualizarEstados = () => {
-    setContenido(cola.getContent());
+    setContenido(cola.obtenerContenido());
     setIndiceInicio(cola.getFront());
     setIndiceFinal(cola.getRear());
   };
 
   const calcularAnchoElemento = () => {
-    setAnchoElemento(anchoContenedor / (cola.getContent().length ?? 1));
+    setAnchoElemento(anchoContenedor / (cola.obtenerContenido().length ?? 1));
   };
 
   const agregar = () => {
-    cola.enqueue(`${contadorProceso}`);
+    cola.encolar({
+      nombre: `${contadorProceso}`,
+      tiempo: tiempoProceso,
+    });
     setContadorProceso(contadorProceso + 1);
     setActualizadoEn(new Date().getTime());
   };
 
   const eliminar = () => {
-    cola.dequeue();
+    cola.desencolar();
     setActualizadoEn(new Date().getTime());
   };
 
   const reiniciar = () => {
-    setCola(new ColaCircular(TAMANO_COLA));
+    setCola(new ColaCircular(TAMANO_COLA, QUANTUM));
     setContadorProceso(1);
+    setTiempoProceso(1);
     toast.info("Se ha reiniciado la cola");
   };
 
@@ -96,7 +103,7 @@ function App() {
       </button>
       <div ref={contenedorRef}>
         <h1>Algoritmo Cola Circular</h1>
-        <div style={{ display: "flex", justifyContent: "flex-start" }}>
+        <div style={{ display: "flex", justifyContent: "flex-start", marginTop: '2rem' }}>
           <motion.img
             src={flechaABajo}
             alt="flecha hacia abajo"
@@ -123,12 +130,20 @@ function App() {
                 flexDirection: "column",
               }}
             >
-              <p style={{ marginBlock: "0 !important" }}>{!!valor ? "Proceso" : ""}</p>
-              <span>{valor}</span>
+              {!!valor && (
+                <>
+                  <p style={{ marginBlock: "0 !important" }}>
+                    {!!valor ? "Proceso" : ""}
+                  </p>
+                  <span>{`${valor?.nombre ?? ""} - ${
+                    valor?.tiempo ?? ""
+                  }`}</span>
+                </>
+              )}
             </div>
           ))}
         </div>
-        <div style={{ display: "flex", justifyContent: "flex-start" }}>
+        <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: '2rem' }}>
           <motion.img
             src={flechaArriba}
             alt="flecha hacia arriba"
@@ -145,8 +160,20 @@ function App() {
           <div
             style={{ display: "flex", gap: "8px", justifyContent: "center" }}
           >
+            <p>Ingrese el tiempo del proceso: </p>
+            <input
+              style={{ width: "40px" }}
+              type="number"
+              min={1}
+              value={tiempoProceso}
+              onChange={(e) => setTiempoProceso(parseInt(e.target.value))}
+            ></input>
+          </div>
+          <div
+            style={{ display: "flex", gap: "8px", justifyContent: "center", marginTop: "8px" }}
+          >
             <button onClick={agregar}>Añadir</button>
-            <button onClick={eliminar}>Eliminar</button>
+            <button onClick={eliminar}>Procesar</button>
           </div>
         </div>
       </div>
